@@ -1,49 +1,48 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatDialog } from '@angular/material/dialog';
 import { Overlay } from '@angular/cdk/overlay';
-import { ModalBannerComponent } from './modal-banner.component';
+import { MatDialog } from '@angular/material/dialog';
+import { ModalBannerComponent } from './modal-banner/modal-banner.component';
+import { AppComponent } from './app.component';
 
-describe('ModalBannerComponent', () => {
-  let component: ModalBannerComponent;
-  let fixture: ComponentFixture<ModalBannerComponent>;
-  let dialog: MatDialog;
-  let overlay: Overlay;
+describe('AppComponent', () => {
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+  let dialogSpy: jasmine.SpyObj<MatDialog>;
+  let overlaySpy: jasmine.SpyObj<Overlay>;
 
   beforeEach(() => {
+    dialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
+    overlaySpy = jasmine.createSpyObj('Overlay', ['scrollStrategy']);
+
     TestBed.configureTestingModule({
-      declarations: [ModalBannerComponent],
+      declarations: [AppComponent],
       providers: [
-        { provide: MatDialog, useValue: jest.fn() },
-        { provide: Overlay, useValue: jest.fn() }
-      ]
-    });
+        { provide: MatDialog, useValue: dialogSpy },
+        { provide: Overlay, useValue: overlaySpy },
+      ],
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(ModalBannerComponent);
+    fixture = TestBed.createComponent(AppComponent);
     component = fixture.componentInstance;
-    dialog = TestBed.get(MatDialog);
-    overlay = TestBed.get(Overlay);
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  it('should open the modal when the button is clicked', () => {
+    fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector('button');
+    button.dispatchEvent(new Event('click'));
 
-  it('should set dialog and overlay properties correctly', () => {
-    expect(component.dialog).toEqual(dialog);
-    expect(component.overlay).toEqual(overlay);
-  });
-
-  it('should call dialog.open with correct options', () => {
-    const spy = jest.spyOn(dialog, 'open');
-    component.showModal();
-    expect(spy).toHaveBeenCalledWith(ModalBannerComponent, {
+    expect(dialogSpy.open).toHaveBeenCalledWith(
+      ModalBannerComponent,
+      {
         width: '75%',
-        panelClass: './../news-modal/news-modal.component',
+        panelClass: 'modal-banner/modal-banner.component',
         height: '80%',
         disableClose: true,
         hasBackdrop: true,
         ariaLabel: 'Modal de notícias',
-        scrollStrategy: overlay.scrollStrategies.noop()
-    });
+        scrollStrategy: overlaySpy.scrollStrategy
+      }
+    );
   });
 });
+
